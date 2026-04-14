@@ -15,10 +15,9 @@ export default function VeiculoCard({ veiculo }: Props) {
 
   useEffect(() => {
     setCarregando(true);
-    api
-      .get<RespostaPaginada<DebitoCalculado>>(`${API_PREFIX}/debitos/veiculo/${veiculo.placa}`)
+    api.get<DebitoCalculado[]>(`${API_PREFIX}/debitos/veiculo/${veiculo.placa}`)
       .then(({ data }) => {
-        const pendentes = (data as unknown as DebitoCalculado[]).filter(
+        const pendentes = data.filter(
           (d) => d.status === 'PENDENTE' || d.status === 'VENCIDO'
         );
         setTotalDebitos(pendentes.length);

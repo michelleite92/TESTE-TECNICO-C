@@ -44,18 +44,18 @@ export interface Veiculo {
 
 export interface DebitoCalculado {
   id: number;
-  veiculo_id: number;
+  veiculoId: number;
   tipo: 'IPVA' | 'MULTA' | 'LICENCIAMENTO' | 'DPVAT';
   descricao: string;
   valor: number;
-  multa_percentual: number;
-  juros_percentual: number;
-  valor_multa: number;
-  valor_juros: number;
-  valor_total: number;
+  percentualMulta: number;
+  percentualJuros: number;
+  valorMulta: number;
+  valorJuros: number;
+  valorTotal: number;
   vencimento: string;
   status: 'PENDENTE' | 'PAGO' | 'VENCIDO';
-  criado_em: string;
+  criadoEm: string;
 }
 
 export interface RespostaPaginada<T> {

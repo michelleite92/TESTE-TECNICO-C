@@ -40,7 +40,6 @@ export class VeiculoController {
   @ApiOperation({ summary: 'Cadastrar novo veículo' })
   @ApiCreatedResponse({ type: Veiculo })
   @ApiConflictResponse({ description: 'Placa já cadastrada' })
-  @HttpCode(200)
   @Post()
   async criar(@Body() dto: CriarVeiculoDto): Promise<Veiculo> {
     return this.veiculoService.criar(dto);

@@ -15,12 +15,14 @@ export class FiltrarVeiculosCommand {
 
   @ApiPropertyOptional({ description: 'Ano mínimo de fabricação', example: 2018 })
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(1950)
   anoMin?: number;
 
   @ApiPropertyOptional({ description: 'Ano máximo de fabricação', example: 2024 })
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(1950)
   anoMax?: number;

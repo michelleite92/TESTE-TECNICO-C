@@ -18,6 +18,11 @@ export default function VeiculoPage() {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
 
+  async function carregarDebitos() {
+    const res = await api.get<DebitoCalculado[]>(`${API_PREFIX}/debitos/veiculo/${placa}`);
+    setDebitos(res.data);
+  }
+
   useEffect(() => {
     if (!estaAutenticado()) {
       router.push('/login');
@@ -38,13 +43,13 @@ export default function VeiculoPage() {
       } finally {
         setCarregando(false);
       }
-    }
+    }   
 
     carregar();
   }, [placa, router]);
 
   const debitosPendentes = debitos.filter((d) => d.status !== 'PAGO');
-  const valorTotal = debitosPendentes.reduce((acc, d) => acc + d.valor_total, 0);
+  const valorTotal = debitosPendentes.reduce((acc, d) => acc + d.valorTotal, 0);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -93,7 +98,7 @@ export default function VeiculoPage() {
 
             {/* Lista de débitos */}
             <h3 className="text-lg font-semibold text-gray-700 mb-3">Débitos</h3>
-            <DebitosList debitos={debitos} />
+            <DebitosList debitos={debitos} onAtualizar={carregarDebitos} />
           </>
         ) : null}
       </main>

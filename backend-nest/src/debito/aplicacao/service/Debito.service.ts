@@ -1,4 +1,4 @@
-import { Injectable, NotImplementedException, NotFoundException } from '@nestjs/common';
+import { Injectable, NotImplementedException, NotFoundException, ConflictException } from '@nestjs/common';
 import { DebitoRepository } from 'src/debito/infra/repository/Debito.repository';
 import { VeiculoRepository } from 'src/veiculo/infra/repository/Veiculo.repository';
 import { Debito } from 'src/debito/dominio/entity/Debito.entity';
@@ -17,20 +17,18 @@ export class DebitoService {
 
   calcularTotais(debito: Debito): DebitoCalculadoQuery {
     const valorMulta = debito.valor * (debito.percentualMulta / 100);
-
-    const valorComMulta = debito.valor + valorMulta;
-    const valorJuros = valorComMulta * (debito.percentualJuros / 100);
+    const valorJuros = debito.valor * (debito.percentualJuros / 100);
 
     return {
       ...debito,
       valorMulta,
       valorJuros,
-      valorTotal: valorComMulta + valorJuros,
+      valorTotal: debito.valor + valorMulta + valorJuros,
     };
   }
 
   async listarPorPlaca(placa: string, command: FiltrarDebitosCommand): Promise<DebitoCalculadoQuery[]> {
-    const veiculo = this.veiculoRepository.buscarPorPlaca(placa.toUpperCase());
+    const veiculo = await this.veiculoRepository.buscarPorPlaca(placa.toUpperCase());
 
     if (!veiculo) {
       throw new NotFoundException(`Veículo com placa ${placa} não encontrado`);
@@ -80,10 +78,46 @@ export class DebitoService {
   }
 
   async quitar(id: number): Promise<void> {
-    throw new NotImplementedException('Funcionalidade não implementada');
+    const debito = await this.debitoRepository.buscarPorId(id);
+
+    if (!debito) {
+      throw new NotFoundException(`Débito ${id} não encontrado`);
+    }
+
+    if (debito.status === StatusDebito.PAGO) {
+      throw new ConflictException(`Débito ${id} já está pago`);
+    }
+
+    await this.debitoRepository.atualizar(id, { status: StatusDebito.PAGO });
   }
 
   async resumo(placa: string): Promise<ResumoDebitosQuery> {
-    throw new NotImplementedException('Funcionalidade não implementada');
+    const veiculo = await this.veiculoRepository.buscarPorPlaca(placa.toUpperCase());
+
+    if (!veiculo) {
+      throw new NotFoundException(`Veículo com placa ${placa} não encontrado`);
+    }
+  
+    const debitos = await this.debitoRepository.buscarPorVeiculoId((veiculo as any).id);
+  
+    const calculados = debitos.map((d) => this.calcularTotais(d));
+  
+    const porTipo = calculados.reduce(
+      (acc, d) => {
+        acc[d.tipo] = (acc[d.tipo] || 0) + d.valorTotal;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+  
+    const valorTotal = calculados.reduce((acc, d) => acc + d.valorTotal, 0);
+  
+    return {
+      placa: veiculo.placa,
+      proprietario: veiculo.proprietario,
+      totalDebitos: calculados.length,
+      valorTotal,
+      porTipo,
+    };
   }
 }

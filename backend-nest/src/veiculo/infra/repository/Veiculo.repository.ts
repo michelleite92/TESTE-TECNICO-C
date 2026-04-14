@@ -16,6 +16,26 @@ export class VeiculoRepository implements IVeiculoRepository {
 
     const query = this.repository.createQueryBuilder('v');
 
+    if (proprietario) {
+      query.andWhere('v.proprietario LIKE :proprietario', {
+        proprietario: `%${proprietario}%`,
+      });
+    }
+
+    if (modelo) {
+      query.andWhere('v.modelo LIKE :modelo', {
+        modelo: `%${modelo}%`,
+      });
+    }
+
+    if (anoMin) {
+      query.andWhere('v.ano >= :anoMin', { anoMin });
+    }
+
+    if (anoMax) {
+      query.andWhere('v.ano <= :anoMax', { anoMax });
+    }
+
     const [data, total] = await Promise.all([
       query.skip(offset).take(limit).getMany(),
       query.getCount(),

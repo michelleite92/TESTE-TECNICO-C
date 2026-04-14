@@ -18,7 +18,10 @@ export class DebitoRepository implements IDebitoRepository {
 
     if (command.tipo) {
       // filtro por tipo existe aqui mas está comentado propositalmente
-      // query.andWhere('d.tipo = :tipo', { tipo: command.tipo });
+      query.andWhere('d.tipo = :tipo', { tipo: command.tipo });
+    }
+    if (command.status) {
+      query.andWhere('d.status = :status', { status: command.status });
     }
 
     return query.orderBy('d.vencimento', 'ASC').getMany();
